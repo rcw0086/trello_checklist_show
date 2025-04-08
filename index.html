@@ -50,23 +50,36 @@
           });
       },
       
-      // We'll also add a refresh button on the back of the card
+      // We'll also add a refresh/authenticate button on the back of the card
       'card-buttons': function(t, options) {
         return [{
           icon: CHECKLIST_ICON,
-          text: 'Refresh Checklist',
+          text: 'Refresh/Authenticate Checklist',
           callback: function(t) {
-            return t.card('id')
-              .then(function(card) {
-                return fetchChecklists(t, card.id)
-                  .then(function(fetchedChecklists) {
-                    // Update our cache
-                    return t.set('card', 'shared', 'checklists', fetchedChecklists)
-                      .then(function() {
-                        // Trigger a refresh of the card front
-                        return t.closePopup();
-                      });
+            return t.get('member', 'private', 'authToken')
+              .then(function(authToken) {
+                // If no auth token, we need to authenticate
+                if (!authToken) {
+                  return t.popup({
+                    title: 'Authorization Required',
+                    url: './authorize.html',
+                    height: 140
                   });
+                } else {
+                  // We have an auth token, so just refresh the data
+                  return t.card('id')
+                    .then(function(card) {
+                      return fetchChecklists(t, card.id)
+                        .then(function(fetchedChecklists) {
+                          // Update our cache
+                          return t.set('card', 'shared', 'checklists', fetchedChecklists)
+                            .then(function() {
+                              // Trigger a refresh of the card front
+                              return t.closePopup();
+                            });
+                        });
+                    });
+                }
               });
           }
         }];
@@ -133,19 +146,20 @@
         .then(function(authToken) {
           // If we don't have an auth token, we'll have to get one
           if (!authToken) {
-            return t.popup({
-              title: 'Authorization Required',
-              url: './authorize.html', // You would need to create this authorization page
-              height: 140
-            })
-            .then(function() {
-              // Try again after authorization
-              return fetchChecklists(t, cardId);
-            });
+            // Instead of immediately opening a popup, let's return a placeholder
+            // and handle authorization differently
+            console.log("No auth token found, card badges will be limited");
+            
+            // Return empty array for now - the user will need to authenticate
+            // by clicking the refresh button we added to the card back
+            return [];
           }
           
+          // Replace YOUR_API_KEY with your actual API key
+          const apiKey = 'YOUR_API_KEY';
+          
           // Now make the actual API request to get the checklists
-          return fetch(`https://api.trello.com/1/cards/${cardId}/checklists?key=${YOUR_API_KEY}&token=${authToken}`)
+          return fetch(`https://api.trello.com/1/cards/${cardId}/checklists?key=${apiKey}&token=${authToken}`)
             .then(function(response) {
               return response.json();
             })
