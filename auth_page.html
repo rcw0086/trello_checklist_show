@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Trello Power-Up Authorization</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 16px;
+      text-align: center;
+    }
+    button {
+      background-color: #0079BF;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 3px;
+      margin-top: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #026AA7;
+    }
+  </style>
+</head>
+<body>
+  <h1>Authorization Required</h1>
+  <p>This Power-Up needs permission to read your card checklists.</p>
+  <button id="authorize-btn">Authorize</button>
+  
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <script>
+    var t = window.TrelloPowerUp.iframe();
+    
+    // Replace with your actual API key
+    var apiKey = '85a50712fbe777501c54e707ad3bd540';
+    
+    // Function to handle authorization
+    document.getElementById('authorize-btn').addEventListener('click', function() {
+      t.authorize({
+        name: 'Show Checklist Power-Up',
+        expiration: 'never',
+        scope: 'read',
+        success: function() {
+          // After authorization, get the token and store it
+          const token = t.arg('token');
+          if (token) {
+            return t.set('member', 'private', 'authToken', token)
+              .then(function() {
+                t.closePopup();
+              });
+          } else {
+            console.error('Failed to get auth token');
+            t.closePopup();
+          }
+        },
+        error: function() {
+          console.error('Failed to authorize');
+          t.closePopup();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
