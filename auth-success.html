@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Authorization Successful</title>
+  <script>
+    // Get the token from the URL hash fragment
+    function getToken() {
+      const hashParams = window.location.hash.substr(1).split('&');
+      for (let i = 0; i < hashParams.length; i++) {
+        const p = hashParams[i].split('=');
+        if (p[0] === 'token') {
+          return decodeURIComponent(p[1]);
+        }
+      }
+      return null;
+    }
+
+    const token = getToken();
+    
+    // Try to pass the token back to the opener window
+    let authorize;
+    try {
+      if (window.opener && typeof window.opener.authorize === "function") {
+        authorize = window.opener.authorize;
+      }
+    } catch (e) {
+      // Security settings are preventing this, fall back to local storage.
+      console.log("Could not access opener window authorize function:", e);
+    }
+    
+    if (authorize && token) {
+      authorize(token);
+    } else if (token) {
+      // Fallback to localStorage if we can't use the window.opener
+      localStorage.setItem("trello_token", token);
+      document.body.innerHTML = "<h1>Authorization Successful!</h1><p>You can close this window and return to Trello.</p>";
+    } else {
+      document.body.innerHTML = "<h1>Authorization Failed</h1><p>No token was received. Please try again.</p>";
+    }
+    
+    // Close the window after a short delay
+    setTimeout(function() {
+      window.close();
+    }, 1000);
+  </script>
+</head>
+<body>
+  <h1>Authorization Processing...</h1>
+  <p>Please wait while we complete the authorization process.</p>
+</body>
+</html>

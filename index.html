@@ -50,37 +50,17 @@
           });
       },
       
-      // We'll also add a refresh/authenticate button on the back of the card
       'card-buttons': function(t, options) {
         return [{
           icon: CHECKLIST_ICON,
-          text: 'Refresh/Authenticate Checklist',
+          text: 'Authenticate for Checklist',
           callback: function(t) {
-            return t.get('member', 'private', 'authToken')
-              .then(function(authToken) {
-                // If no auth token, we need to authenticate
-                if (!authToken) {
-                  return t.popup({
-                    title: 'Authorization Required',
-                    url: './authorize.html',
-                    height: 140
-                  });
-                } else {
-                  // We have an auth token, so just refresh the data
-                  return t.card('id')
-                    .then(function(card) {
-                      return fetchChecklists(t, card.id)
-                        .then(function(fetchedChecklists) {
-                          // Update our cache
-                          return t.set('card', 'shared', 'checklists', fetchedChecklists)
-                            .then(function() {
-                              // Trigger a refresh of the card front
-                              return t.closePopup();
-                            });
-                        });
-                    });
-                }
-              });
+            // Return a promise that resolves once auth is complete
+            return t.popup({
+              title: 'Authorization Required',
+              url: './authorize.html',
+              height: 140
+            });
           }
         }];
       }

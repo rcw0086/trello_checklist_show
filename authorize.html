@@ -32,43 +32,43 @@
   
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
   <script>
+    // Define your authorization token handler in global scope
+    window.authorize = function(token) {
+      const t = window.TrelloPowerUp.iframe();
+      
+      // Save the token
+      t.set('member', 'private', 'authToken', token)
+        .then(function() {
+          // Close the popup after saving the token
+          t.closePopup();
+        })
+        .catch(function(error) {
+          console.error('Error saving token:', error);
+        });
+    };
+    
     var t = window.TrelloPowerUp.iframe();
     
     // Replace with your actual API key
     var apiKey = '85a50712fbe777501c54e707ad3bd540';
     
-    // Function to handle authorization
+    // Build the authorization URL
+    const authUrl = `https://trello.com/1/authorize?expiration=never&name=Show+Checklist+Power-Up&scope=read&response_type=token&key=${apiKey}&return_url=${encodeURIComponent(window.location.origin + '/auth-success.html')}`;
+    
+    // Add event listener to the authorize button
     document.getElementById('authorize-btn').addEventListener('click', function() {
-      // The key parameter must match the API key you're using
-      // Replace YOUR_API_KEY with your actual Trello API key
-      var apiKey = 'YOUR_API_KEY';
-      
-      t.authorize({
-        type: 'popup',
-        name: 'Show Checklist Power-Up',
-        persist: true,
-        expiration: 'never',
-        scope: {
-          read: true
-        },
-        success: function() {
-          // Get the token from localStorage after authorization
-          var token = localStorage.getItem('token');
-          if (token) {
-            return t.set('member', 'private', 'authToken', token)
-              .then(function() {
-                t.closePopup();
-              });
-          } else {
-            console.error('Failed to get auth token');
-            t.closePopup();
-          }
-        },
-        error: function() {
-          console.error('Failed to authorize');
+      t.authorize(authUrl)
+        .then(function(token) {
+          // Save the token after successful authorization
+          return t.set('member', 'private', 'authToken', token);
+        })
+        .then(function() {
+          // Close the popup after saving the token
           t.closePopup();
-        }
-      });
+        })
+        .catch(function(error) {
+          console.error('Authorization failed:', error);
+        });
     });
   </script>
 </body>
