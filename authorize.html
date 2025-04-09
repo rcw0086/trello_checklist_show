@@ -39,13 +39,21 @@
     
     // Function to handle authorization
     document.getElementById('authorize-btn').addEventListener('click', function() {
+      // The key parameter must match the API key you're using
+      // Replace YOUR_API_KEY with your actual Trello API key
+      var apiKey = 'YOUR_API_KEY';
+      
       t.authorize({
+        type: 'popup',
         name: 'Show Checklist Power-Up',
+        persist: true,
         expiration: 'never',
-        scope: 'read',
+        scope: {
+          read: true
+        },
         success: function() {
-          // After authorization, get the token and store it
-          const token = t.arg('token');
+          // Get the token from localStorage after authorization
+          var token = localStorage.getItem('token');
           if (token) {
             return t.set('member', 'private', 'authToken', token)
               .then(function() {
