@@ -20,7 +20,7 @@
     const MAX_CHECKLIST_ITEMS = 1;
     
     // You can replace this with your own icon URL if preferred
-    const CHECKLIST_ICON = 'https://rcw0086.github.io/trello_checklist_show/icons8-checkbox-32.png';
+    const CHECKLIST_ICON = 'https://rcw0086.github.io/trello_checklist_show/right-arrow.svg';
     
     // Our main Power-Up object
     window.TrelloPowerUp.initialize({
@@ -101,7 +101,7 @@
       // Create a badge for each item
       const badges = itemsToShow.map(function(item) {
         
-        const MAX_TEXT_LENGTH = 27;
+        const MAX_TEXT_LENGTH = 25;
         // Truncate the text if it's too long
         const truncate = (text) => {
           if (text.length > MAX_TEXT_LENGTH) {
