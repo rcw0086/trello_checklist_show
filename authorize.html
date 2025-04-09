@@ -53,6 +53,11 @@
     var apiKey = '85a50712fbe777501c54e707ad3bd540';
     
     // Build the authorization URL
+    // We need to construct the return URL based on the repository structure
+    const fullUrl = window.location.href;
+    const baseUrl = fullUrl.substring(0, fullUrl.lastIndexOf('/') + 1);
+    const returnUrl = baseUrl + 'auth-success.html';
+    
     const authUrl = `https://trello.com/1/authorize?expiration=never&name=Show+Checklist+Power-Up&scope=read&response_type=token&key=${apiKey}&return_url=${encodeURIComponent(returnUrl)}`;
     
     // Add event listener to the authorize button
