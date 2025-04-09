@@ -20,7 +20,7 @@
     const MAX_CHECKLIST_ITEMS = 1;
     
     // You can replace this with your own icon URL if preferred
-    const CHECKLIST_ICON = 'https://cdn.glitch.com/1b42d7fe-bda8-4af8-a6c8-eff0cea9e08a%2Fchecklist.png?1494946700421';
+    const CHECKLIST_ICON = 'checkbox.svg';
     
     // Our main Power-Up object
     window.TrelloPowerUp.initialize({
@@ -101,7 +101,7 @@
       const badges = itemsToShow.map(function(item) {
         return {
           text: item.name,
-          // icon: CHECKLIST_ICON,
+          icon: CHECKLIST_ICON,
           // color: 'blue',
           title: `Next from ${item.checklistName}`, // Tooltip on hover
         };
