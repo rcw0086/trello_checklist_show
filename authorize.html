@@ -53,7 +53,7 @@
     var apiKey = '85a50712fbe777501c54e707ad3bd540';
     
     // Build the authorization URL
-    const authUrl = `https://trello.com/1/authorize?expiration=never&name=Show+Checklist+Power-Up&scope=read&response_type=token&key=${apiKey}&return_url=${encodeURIComponent(window.location.origin + '/auth-success.html')}`;
+    const authUrl = `https://trello.com/1/authorize?expiration=never&name=Show+Checklist+Power-Up&scope=read&response_type=token&key=${apiKey}&return_url=${encodeURIComponent(returnUrl)}`;
     
     // Add event listener to the authorize button
     document.getElementById('authorize-btn').addEventListener('click', function() {
