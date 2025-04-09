@@ -97,10 +97,19 @@
       // Only show up to MAX_CHECKLIST_ITEMS items
       const itemsToShow = incompleteItems.slice(0, MAX_CHECKLIST_ITEMS);
       
+      MAX_TEXT_LENGTH = 30;
+      // Truncate the text if it's too long
+      const truncate = (text) => {
+        if (text.length > MAX_TEXT_LENGTH) {
+          return text.substring(0, MAX_TEXT_LENGTH) + '...';
+        }
+        return text;
+      }
+      
       // Create a badge for each item
       const badges = itemsToShow.map(function(item) {
         return {
-          text: item.name,
+          text: trunctate(item.name),
           icon: CHECKLIST_ICON,
           // color: 'blue',
           title: `Next from ${item.checklistName}`, // Tooltip on hover
