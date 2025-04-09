@@ -26,41 +26,86 @@
     window.TrelloPowerUp.initialize({
       // This is where we define our capabilities
       'card-badges': function(t, options) {
+        console.log("card-badges capability triggered");
+        
         // First, we need to fetch any checklists on this card
         return t.card('id')
           .then(function(card) {
-            // Now get all checklists for this card
-            return t.get('card', 'shared', 'checklists')
-              .then(function(checklists) {
-                // If we already have cached checklists, use them
-                if (checklists) {
-                  return showChecklist(t, checklists);
+            console.log("Card ID:", card.id);
+            
+            // Check if we have auth token
+            return t.get('member', 'private', 'authToken')
+              .then(function(authToken) {
+                if (!authToken) {
+                  console.log("No auth token available");
+                  // Return a badge prompting authentication
+                  return [{
+                    text: 'Auth needed for checklist',
+                    icon: CHECKLIST_ICON,
+                    color: 'blue'
+                  }];
                 }
                 
-                // Otherwise, fetch them from the Trello API
+                // Directly fetch checklists since we have a token
                 return fetchChecklists(t, card.id)
-                  .then(function(fetchedChecklists) {
-                    // Cache the checklists for future use
-                    return t.set('card', 'shared', 'checklists', fetchedChecklists)
+                  .then(function(checklists) {
+                    console.log("Processing checklists for badges");
+                    // Cache the fetched checklists
+                    return t.set('card', 'shared', 'checklists', checklists)
                       .then(function() {
-                        return showChecklist(t, fetchedChecklists);
+                        return showChecklist(t, checklists);
                       });
                   });
               });
+          })
+          .catch(function(error) {
+            console.error("Error in card-badges:", error);
+            return [{
+              text: 'Error loading checklist',
+              icon: CHECKLIST_ICON,
+              color: 'red'
+            }];
           });
       },
       
+      // Add a refresh button on the back of the card
       'card-buttons': function(t, options) {
         return [{
           icon: CHECKLIST_ICON,
-          text: 'Authenticate for Checklist',
+          text: 'Refresh Checklist',
           callback: function(t) {
-            // Return a promise that resolves once auth is complete
-            return t.popup({
-              title: 'Authorization Required',
-              url: './authorize.html',
-              height: 140
-            });
+            return t.card('id')
+              .then(function(card) {
+                console.log("Refreshing checklists for card:", card.id);
+                
+                // First check if we have an auth token
+                return t.get('member', 'private', 'authToken')
+                  .then(function(authToken) {
+                    if (!authToken) {
+                      console.log("No auth token - opening auth popup");
+                      // If no auth token, we need to authenticate
+                      return t.popup({
+                        title: 'Authorization Required',
+                        url: './authorize.html',
+                        height: 140
+                      });
+                    } else {
+                      console.log("Token found, fetching fresh checklist data");
+                      // We have an auth token, so just refresh the data
+                      return fetchChecklists(t, card.id)
+                        .then(function(fetchedChecklists) {
+                          console.log("Fetched checklists:", fetchedChecklists.length);
+                          // Update our cache
+                          return t.set('card', 'shared', 'checklists', fetchedChecklists)
+                            .then(function() {
+                              // Trigger a refresh of the card front
+                              console.log("Data updated, closing popup");
+                              return t.closePopup();
+                            });
+                        });
+                    }
+                  });
+              });
           }
         }];
       }
@@ -68,14 +113,22 @@
     
     // Function to show checklist items as badges
     function showChecklist(t, checklists) {
+      console.log("Showing checklists:", checklists);
+      
       if (!checklists || checklists.length === 0) {
-        return [];
+        console.log("No checklists available");
+        return [{
+          text: 'No checklists found',
+          icon: CHECKLIST_ICON,
+          color: 'light-gray'
+        }];
       }
       
       // Collect all incomplete checklist items
       let incompleteItems = [];
       
       checklists.forEach(function(checklist) {
+        console.log("Processing checklist:", checklist.name);
         if (checklist.checkItems && checklist.checkItems.length > 0) {
           checklist.checkItems.forEach(function(item) {
             if (item.state !== 'complete') {
@@ -89,9 +142,15 @@
         }
       });
       
-      // If there are no incomplete items, return an empty array
+      console.log("Incomplete items found:", incompleteItems.length);
+      
+      // If there are no incomplete items, return a completed badge
       if (incompleteItems.length === 0) {
-        return [];
+        return [{
+          text: 'All items complete',
+          icon: CHECKLIST_ICON,
+          color: 'green'
+        }];
       }
       
       // Only show up to MAX_CHECKLIST_ITEMS items
@@ -103,7 +162,7 @@
           text: item.name,
           icon: CHECKLIST_ICON,
           color: 'blue',
-          title: `Next from ${item.checklistName}`, // Tooltip on hover
+          title: `From: ${item.checklistName}`, // Tooltip on hover
         };
       });
       
@@ -116,32 +175,39 @@
         });
       }
       
+      console.log("Returning badges:", badges.length);
       return badges;
     }
     
     // Function to fetch checklists from Trello API
     function fetchChecklists(t, cardId) {
+      console.log("Fetching checklists for card:", cardId);
+      
       // We need the API key and token to make requests to the Trello API
       return t.get('member', 'private', 'authToken')
         .then(function(authToken) {
           // If we don't have an auth token, we'll have to get one
           if (!authToken) {
-            // Instead of immediately opening a popup, let's return a placeholder
-            // and handle authorization differently
-            console.log("No auth token found, card badges will be limited");
-            
-            // Return empty array for now - the user will need to authenticate
-            // by clicking the refresh button we added to the card back
+            console.log("No auth token found");
             return [];
           }
           
           // Replace YOUR_API_KEY with your actual API key
           const apiKey = '85a50712fbe777501c54e707ad3bd540';
           
+          console.log("Making API request with token:", authToken.slice(0, 5) + "...");
+          
           // Now make the actual API request to get the checklists
           return fetch(`https://api.trello.com/1/cards/${cardId}/checklists?key=${apiKey}&token=${authToken}`)
             .then(function(response) {
+              if (!response.ok) {
+                throw new Error(`API request failed with status ${response.status}`);
+              }
               return response.json();
+            })
+            .then(function(data) {
+              console.log("Received checklists:", data.length);
+              return data;
             })
             .catch(function(error) {
               console.error('Error fetching checklists:', error);
