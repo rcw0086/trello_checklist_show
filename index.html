@@ -119,13 +119,13 @@
       });
       
       // Add a +N more badge if there are more items
-      // if (incompleteItems.length > MAX_CHECKLIST_ITEMS) {
-      //   badges.push({
-      //     text: `+${incompleteItems.length - MAX_CHECKLIST_ITEMS} more`,
-      //     icon: CHECKLIST_ICON,
-      //     color: 'light-gray'
-      //   });
-      // }
+      if (incompleteItems.length > MAX_CHECKLIST_ITEMS) {
+        badges.push({
+          text: `+${incompleteItems.length - MAX_CHECKLIST_ITEMS} more`,
+          icon: CHECKLIST_ICON,
+          color: 'light-gray'
+        });
+      }
       
       return badges;
     }
