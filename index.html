@@ -150,7 +150,13 @@
           const apiKey = '85a50712fbe777501c54e707ad3bd540';
           
           // Now make the actual API request to get the checklists
-          return fetch(`https://api.trello.com/1/cards/${cardId}/checklists?key=${apiKey}&token=${authToken}`)
+          return fetch(`https://api.trello.com/1/cards/${cardId}/checklists?key=${apiKey}&token=${authToken}`, {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }})
             .then(function(response) {
               return response.json();
             })
